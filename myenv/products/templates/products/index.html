@@ -29,6 +29,20 @@
           font-size: 3.5rem;
         }
       }
+
+      .jumbotron {
+        padding: 0.2em 0.2em;
+        h1 {
+        font-size: 2em;
+        }
+        p {
+        font-size: 1.2em;
+        .btn {
+            padding: 0.5em;
+             }
+          }
+      }
+
     </style>
     <!-- Custom styles for this template -->
     <link href="album.css" rel="stylesheet">
@@ -43,10 +57,10 @@
   <div class="collapse navbar-collapse" id="navbarCollapse">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
-        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+        <a class="nav-link" href="http://127.0.0.1:8000/">Home <span class="sr-only">(current)</span></a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">Dashboard</a>
+        <a class="nav-link" href="http://127.0.0.1:8000/dashboard/">Dashboard</a>
       </li>
     </ul>
   </div>
@@ -71,7 +85,7 @@
       <div class="row">
         {% for product in products.all %}
 
-        <div class="col-md-4">
+        <div class="col-md-3">
 
           <div class="card mb-4 shadow-sm">
 
