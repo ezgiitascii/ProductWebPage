@@ -4,9 +4,6 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
-    <meta name="generator" content="Jekyll v3.8.5">
     <title>TURIB</title>
 
 
@@ -29,24 +26,54 @@
           font-size: 3.5rem;
         }
       }
+
+      .jumbotron {
+        padding: 0.2em 0.2em;
+        h1 {
+        font-size: 2em;
+        }
+        p {
+        font-size: 1.2em;
+        .btn {
+            padding: 0.5em;
+             }
+          }
+      }
+
     </style>
     <!-- Custom styles for this template -->
     <link href="album.css" rel="stylesheet">
   </head>
   <body>
 
-
+    <nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+      <img src="static/turib.png" height="30" width="100" />
+  <!-- <a class="navbar-brand" href="#"> TÜRİB</a> -->
+  <button class="navbar-toggler" style="border-color:black;" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarCollapse" >
+    <ul class="navbar-nav mr-auto" >
+      <li class="nav-item active" >
+        <a class="nav-link" href="http://127.0.0.1:8000/">Home <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="http://127.0.0.1:8000/dashboard/">Dashboard</a>
+      </li>
+    </ul>
+  </div>
+  </nav>
 <main role="main">
 
-  <section class="jumbotron text-center">
+  <section class="jumbotron text-center" style="background-color: lightblue ;" >
     <div class="container">
-      <h1 class="jumbotron-heading">ELÜS PRODUCTS</h1>
-      <p class="lead text-muted">Electronic Product Certificate (ELUS) is an electronic document issued to represent products in licensed warehouses.</p>
+      <h1 class="jumbotron-heading" style="text-shadow: 2px 2px red;">ELÜS PRODUCTS</h1>
+      <p class="lead textStr" style="font-style: italic;">(Electronic Product Certificate (ELUS) is an electronic document issued to represent products in licensed warehouses.)</p>
       <p>
         <a href="mailto:soru@turib.com.tr" class="btn btn-primary my-2">Email us</a>
         <a href="https://www.turib.com.tr/Default.aspx" class="btn btn-info my-2">TÜRİB</a>
       </p>
-      <img src="{% static 'turib2.png' %}" height=300></img>
+      <!-- <img src="{% static 'turib2.png' %}" height=300></img> -->
     </div>
   </section>
 
@@ -56,7 +83,7 @@
       <div class="row">
         {% for product in products.all %}
 
-        <div class="col-md-4">
+        <div class="col-md-3">
 
           <div class="card mb-4 shadow-sm">
 

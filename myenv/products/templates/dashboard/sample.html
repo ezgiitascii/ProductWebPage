@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="en">
+{% load static %}
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>DASHBOARD</title>
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+<style>
+  .jumbotron {
+    padding: 0.2em 0.2em;
+    h1 {
+    font-size: 2em;
+    }
+    p {
+    font-size: 1.2em;
+    .btn {
+        padding: 0.5em;
+         }
+      }
+  }
+</style>
+
+<!-- Custom styles for this template -->
+<link href="/album.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+  <img src="/static/turib.png" height="30" width="100" />
+    <!-- <a class="navbar-brand" href="#">TÜRİB</a> -->
+    <button class="navbar-toggler" style="border-color:black;" type="button" data-toggle="collapse" data-target="#navbar-collapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav ml-auto" >
+            <li class="nav-item active">
+                <a class="nav-link" href="http://127.0.0.1:8000/">Home</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="http://127.0.0.1:8000/dashboard/">Dashboard <span class="sr-only">(current)</span></a>
+            </li>
+        </ul>
+      </div>
+</nav>
+
+<section class="jumbotron text-center" style="background-color: lightblue ;">
+  <div class="container">
+    <h1 class="jumbotron-heading" style="text-shadow: 2px 2px red;">TARİHSEL PİYASA VERİLERİ</h1>
+    <p class="lead textStr" style="font-style: italic;">(Normal Seans Sürekli Müzayede “Limit Fiyatlı Emirler” ve TMO “Özel Emir İşlem Bildirimleri” üzerinden gerçekleşen işlem bilgilerini kapsamaktadır.)</p>
+    <label for="selectProductType">Ürün Cinsi</label>
+    <select class="form-control" id="selectProductType" onchange="ProductTypeChanged()">
+        <option value="0">Seçiniz</option>
+    </select>
+  </div>
+</section>
+    <div class="container">
+        <div class="container-fluid">
+            <hr />
+            <div class="row mt-2" id="bulletin" style="height: 600px;">
+                <div id="chart_div" class="col-sm-12" style="height: 600px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-latest.js"></script>
+    <script src="https://code.highcharts.com/stock/highstock.js"></script>
+    <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+
+
+    <script type="text/javascript">
+        var AllRecords = null;
+        var typeList = [];
+        var nameList = [];
+
+        $.getJSON('https://api.turib.com.tr/api/getbulletinmedia', function (records) {
+            AllRecords = records;
+            $(records).each(function (index, record) {
+                var key = record.ProductType;
+
+                if (record.ProductGroup == 'Buğday Ekmeklik') {
+                    key = 'BE';
+                    record.ProductType = 'BE';
+                }
+                else if (record.ProductGroup == 'Buğday Makarnalık') {
+                    key = 'BM';
+                    record.ProductType = 'BM';
+                }
+                else if (record.ProductGroup == 'Fındık Giresun Kalite Tombul') {
+                    key = 'FG'
+                    record.ProductType = 'FG'
+                }
+                else if (record.ProductGroup == 'Fındık Levant Kalite Tombul') {
+                    key = 'FL'
+                    record.ProductType = 'FL'
+                }
+
+                if (typeList.indexOf(key) == -1) {
+                    typeList.push(key);
+                    nameList.push(record.ProductGroup);
+                }
+            });
+
+            AllRecords = records;
+
+            var select = document.getElementById("selectProductType");
+            $(typeList).each(function (index, val) {
+                var option = document.createElement("option");
+                option.text = nameList[index];
+                option.value = typeList[index];
+                select.add(option);
+            });
+        });
+
+        function drawCharts(dataCandlestick, dataLine, dataBar, extraLine, extraLine2) {
+            var chartDiv = document.createElement('div');
+            chartDiv.className = 'chart';
+            $('#chart_div').html("");
+            document.getElementById('chart_div').appendChild(chartDiv);
+            Highcharts.setOptions({
+
+                colors: ['#058DC7', '#50B432', '#ED561B', '#a30909', '#24CBE5', '#64E572',
+                    '#FF9655', '#FFF263', '#6AF9C4'],
+                chart: {
+                    backgroundColor: {
+                        linearGradient: [0, 0, 500, 500],
+                        stops: [
+                            [0, 'rgb(255, 255, 255)'],
+                            [1, 'rgb(240, 240, 255)']
+                        ]
+                    },
+                    shadow: true
+                },
+                title: {
+                    style: {
+                        color: '#000',
+                        font: 'bold 16px "Trebuchet MS", Verdana, sans-serif'
+                    }
+                },
+                subtitle: {
+                    style: {
+                        color: '#666666',
+                        font: 'bold 12px "Trebuchet MS", Verdana, sans-serif'
+                    }
+                },
+                legend: {
+                    itemStyle: {
+                        font: '9pt Trebuchet MS, Verdana, sans-serif',
+                        color: 'black'
+                    },
+                    itemHoverStyle: {
+                        color: 'gray'
+                    }
+                },
+                labels: {
+                    style: {
+                        color: '#6e6e70'
+                    }
+                },
+                xAxis: {
+                    labels: {
+                        style: {
+                            color: '#6e6e70'
+                        }
+                    }
+                },
+                yAxis: {
+                    labels: {
+                        style: {
+                            color: '#6e6e70'
+                        }
+                    }
+                },
+                plotOptions: {
+                    series: {
+                        shadow: true
+                    },
+                    candlestick: {
+                        upColor: '#50b432'
+                    },
+                    map: {
+                        shadow: false
+                    }
+                },
+                navigator: {
+                    xAxis: {
+                        gridLineColor: '#D0D0D8'
+                    }
+                },
+                rangeSelector: {
+                    buttons: [{
+                        type: 'month',
+                        count: 1,
+                        text: '1ay'
+                    }, {
+                        type: 'month',
+                        count: 3,
+                        text: '3ay'
+                    }, {
+                        type: 'month',
+                        count: 6,
+                        text: '6ay'
+                    }, {
+                        type: 'year',
+                        count: 1,
+                        text: '1yıl'
+                    }, {
+                        type: 'all',
+                        text: 'Tümü'
+                    }],
+                    buttonTheme: {
+                        fill: 'white',
+                        stroke: '#C0C0C8',
+                        'stroke-width': 1,
+                        states: {
+                            select: {
+                                fill: '#D0D0D8'
+                            }
+                        }
+                    }
+                },
+                scrollbar: {
+                    trackBorderColor: '#C0C0C8'
+                },
+                lang: {
+                    loading: 'Yükleniyor...',
+                    months: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'],
+                    weekdays: ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'],
+                    shortMonths: ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'],
+                    exportButtonTitle: "Dışa Aktar",
+                    printButtonTitle: "İçe Aktar",
+                    rangeSelectorFrom: "Başlangıç",
+                    rangeSelectorTo: "Bitiş",
+                    rangeSelectorZoom: "Periyot",
+                    downloadPNG: 'PNG Resim İndir',
+                    downloadJPEG: 'JPEG Resim İndir',
+                    downloadPDF: 'PDF İndir',
+                    downloadSVG: 'SVG Resim İndir',
+                    downloadXLS: 'XLS İndir',
+                    downloadCSV: 'CSV İndir',
+                    openInCloud: 'Highcharts Cloud İle Aç',
+                    viewData: 'Grafiği İncele',
+                    viewFullscreen: 'Tam Ekranda Görüntüle',
+                    printChart: 'Yazdır',
+                    thousandsSep: ".",
+                    decimalPoint: ','
+                }
+
+            });
+
+            Highcharts.stockChart(chartDiv, {
+                chart: {
+                    height: '600px',
+                },
+                title: {
+                    text: $("#selectProductType option:selected").html(),
+                    margin: 0,
+                    align: 'center'
+                },
+                credits: {
+                    enabled: false
+                },
+                legend: {
+                    enabled: false
+                },
+                exporting: {
+                    enabled: true
+                },
+                xAxis: {
+                    events: {
+                        setExtremes: syncExtremes
+                    },
+                    type: 'datetime',
+                    labels: {
+                        rotation: 45,
+                        align: 'left'
+                    },
+                    title: {
+                        text: 'Tarih'
+                    }
+                },
+                yAxis: [{
+                    tickPixelInterval: 25,
+                    opposite: false,
+                    height: '30%',
+                    lineWidth: 2,
+                    margin: 10,
+                    labels: {
+                        align: 'right'
+                    },
+                    title: {
+                        text: 'Fiyat'
+                    }
+                }, {
+                    tickPixelInterval: 25,
+                    opposite: false,
+                    top: '35%',
+                    height: '30%',
+                    lineWidth: 2,
+                    offset: 0,
+                    margin: 10,
+                    labels: {
+                        align: 'right'
+                    },
+                    title: {
+                        text: 'Ağ. Ort. Fiyat'
+                    }
+                }, {
+                    tickPixelInterval: 25,
+                    opposite: false,
+                    top: '70%',
+                    height: '30%',
+                    lineWidth: 2,
+                    offset: 0,
+                    margin: 10,
+                    labels: {
+                        align: 'right'
+                    },
+                    title: {
+                        text: 'Hacim'
+                    },
+                }
+                ],
+                exporting: {
+                    buttons: {
+                        contextButton: {
+                            menuItems: [
+                                'viewFullscreen',
+                                'printChart',
+                                'separator',
+                                'downloadPDF',
+                                'downloadCSV',
+                                'downloadXLS',
+                            ]
+                        },
+                    },
+                    csv: {
+                        columnHeaderFormatter: function (item, key) {
+                            if (item.name) {
+                                console.log(item);
+                                var columnName = item.name;
+                                if (key == 'open') {
+                                    columnName = "Acilis";
+                                }
+                                else if (key == 'close') {
+                                    columnName = "Kapanis";
+                                }
+                                else if (key == 'high') {
+                                    columnName = "En Yuksek";
+                                }
+                                else if (key == 'low') {
+                                    columnName = "En Dusuk";
+                                }
+                                else if (item.name == 'Ağ. Ort. Fiyat') {
+                                    columnName = "Agirlikli Ortalama Fiyat";
+                                }
+                                else if (item.name == 'İşlem Adedi') {
+                                    columnName = 'Islem Adedi';
+                                }
+                                else if (item.name == 'İşlem Miktarı') {
+                                    columnName = "Islem Miktari (KG)";
+                                }
+                                else if (item.name == 'İşlem Hacmi') {
+                                    columnName = "Islem Hacmi (TL)";
+                                }
+                                return columnName;
+                            }
+                            return "Tarih";
+                        },
+                        itemDelimiter: ';',
+                    }
+                },
+                navigator: {
+                    enabled: true,
+                    series: {
+                        includeInCSVExport: false
+                    }
+                },
+                series: [
+                    {
+                        data: dataCandlestick.data,
+                        name: dataCandlestick.name,
+                        type: dataCandlestick.type,
+                        color: Highcharts.getOptions().colors[2],
+                        fillOpacity: 0.3,
+                        yAxis: 0,
+                        tooltip: {
+                            pointFormat: 'Açılış: <b>{point.open:.4f}</b> <br> En yüksek: <b>{point.high:.4f}</b> <br> En düşük: <b>{point.low:.4f}</b> <br> Kapanış: <b>{point.close:.4f}</b>',
+                            valueSuffix: " ₺",
+
+                        }
+                    },
+                    {
+                        data: dataLine.data,
+                        name: dataLine.name,
+                        type: dataLine.type,
+                        color: Highcharts.getOptions().colors[0],
+                        fillOpacity: 0.3,
+                        yAxis: 1,
+                        tooltip: {
+                            valueSuffix: ' ₺'
+                        }
+                    },
+                    {
+                        data: extraLine.data,
+                        name: extraLine.name,
+                        type: extraLine.type,
+                        visible: false
+                    },
+                    {
+                        data: extraLine2.data,
+                        name: extraLine2.name,
+                        type: extraLine2.type,
+                        visible: false
+                    },
+                    {
+                        data: dataBar.data,
+                        name: dataBar.name,
+                        type: dataBar.type,
+                        color: Highcharts.getOptions().colors[3],
+                        fillOpacity: 0.3,
+                        yAxis: 2,
+                        tooltip: {
+                            valueSuffix: ' ₺'
+                        }
+                    }
+
+                ]
+            });
+
+
+        }
+
+        function syncExtremes(e) {
+            var thisChart = this.chart;
+
+            if (e.trigger !== 'syncExtremes') { // Prevent feedback loop
+                Highcharts.each(Highcharts.charts, function (chart) {
+                    if (chart !== thisChart) {
+                        if (chart.xAxis[0].setExtremes) { // It is null while updating
+                            chart.xAxis[0].setExtremes(
+                                e.min,
+                                e.max,
+                                undefined,
+                                false,
+                                { trigger: 'syncExtremes' }
+                            );
+                        }
+                    }
+                });
+            }
+        }
+
+        function ListRecordsBasedOnType(type) {
+            var subList = AllRecords.filter(function (record) {
+                return record.ProductType == type;
+            });
+
+            dataHacim = [];
+            dataAgrOrt = [];
+            dataFiyat = [];
+            dataExtra = [];
+            dataExtra2 = [];
+            $(subList).each(function (index, record) {
+                dataAgrOrt.push([Date.parse(record.TradeDate.toString().substring(0, 10)), record.Mean]);
+                dataHacim.push([Date.parse(record.TradeDate.toString().substring(0, 10)), record.TradedValue]);
+                dataFiyat.push([Date.parse(record.TradeDate.toString().substring(0, 10)), record.Open, record.High, record.Low, record.Close]);
+                dataExtra.push([Date.parse(record.TradeDate.toString().substring(0, 10)), record.NumberOfTrades]);
+                dataExtra2.push([Date.parse(record.TradeDate.toString().substring(0, 10)), record.TradedVolume]);
+            });
+            var chartDataFiyat = { name: "Fiyat", type: "candlestick", unit: "TL", data: dataFiyat };
+            var chartDataAgrOrt = { name: "Ağ. Ort. Fiyat", type: "line", unit: "TL", data: dataAgrOrt };
+            var chartDataHacim = { name: "İşlem Hacmi", type: "column", unit: "TL", data: dataHacim };
+            var chartDataIslemSayi = { name: "İşlem Adedi", type: "line", unit: "Adet", data: dataExtra };
+            var chartDataIslemHacim = { name: "İşlem Miktarı", type: "line", unit: "KG", data: dataExtra2 };
+
+            console.log(dataExtra);
+            drawCharts(chartDataFiyat, chartDataAgrOrt, chartDataHacim, chartDataIslemSayi, chartDataIslemHacim);
+        }
+
+        function ProductTypeChanged(e) {
+            var select = document.getElementById("selectProductType");
+            if (AllRecords == null)
+                return;
+
+            if (select.value == "0") {
+                $('#chart_div').html("");
+                return;
+            }
+
+            ListRecordsBasedOnType(select.value);
+        }
+
+
+
+
+            /**
+             * EXPORT PLUGINI KODLARI BASLANGIC
+             */
+
+        (function (Highcharts) {
+
+            'use strict';
+
+            var each = Highcharts.each,
+                pick = Highcharts.pick,
+                downloadAttrSupported = document.createElement('a').download !== undefined;
+
+            Highcharts.setOptions({
+                lang: {
+                    downloadCSV: 'Download CSV',
+                    downloadXLS: 'Download XLS',
+                    viewData: 'View data table'
+                }
+            });
+
+
+            /**
+             * Get the data rows as a two dimensional array
+             */
+            Highcharts.Chart.prototype.getDataRows = function () {
+                var options = (this.options.exporting || {}).csv || {},
+                    xAxis = this.xAxis[0],
+                    rows = {},
+                    rowArr = [],
+                    dataRows,
+                    names = [],
+                    i,
+                    x,
+                    xTitle = xAxis.options.title && xAxis.options.title.text,
+
+                    // Options
+                    dateFormat = '%d-%m-%Y',
+                    columnHeaderFormatter = options.columnHeaderFormatter || function (series, key, keyLength) {
+                        return series.name + (keyLength > 1 ? ' (' + key + ')' : '');
+                    };
+
+                // Loop the series and index values
+                i = 0;
+                each(this.series, function (series) {
+                    var keys = series.options.keys,
+                        pointArrayMap = keys || series.pointArrayMap || ['y'],
+                        valueCount = pointArrayMap.length,
+                        requireSorting = series.requireSorting,
+                        categoryMap = {},
+                        j;
+
+                    // Map the categories for value axes
+                    each(pointArrayMap, function (prop) {
+                        categoryMap[prop] = (series[prop + 'Axis'] && series[prop + 'Axis'].categories) || [];
+                    });
+
+                    if (series.options.includeInCSVExport !== false) { // #55
+                        j = 0;
+                        while (j < valueCount) {
+                            names.push(columnHeaderFormatter(series, pointArrayMap[j], pointArrayMap.length));
+                            j = j + 1;
+                        }
+
+                        each(series.points, function (point, pIdx) {
+                            var key = requireSorting ? point.x : pIdx,
+                                prop,
+                                val;
+
+                            j = 0;
+
+                            if (!rows[key]) {
+                                rows[key] = [];
+                            }
+                            rows[key].x = point.x;
+
+                            // Pies, funnels etc. use point name in X row
+                            if (!series.xAxis) {
+                                rows[key].name = point.name;
+                            }
+
+                            while (j < valueCount) {
+                                prop = pointArrayMap[j]; // y, z etc
+                                val = point[prop];
+                                rows[key][i + j] = pick(categoryMap[prop][val], val); // Pick a Y axis category if present
+                                j = j + 1;
+                            }
+
+                        });
+                        i = i + j;
+                    }
+                });
+
+                // Make a sortable array
+                for (x in rows) {
+                    if (rows.hasOwnProperty(x)) {
+                        rowArr.push(rows[x]);
+                    }
+                }
+                // Sort it by X values
+                rowArr.sort(function (a, b) {
+                    return a.x - b.x;
+                });
+
+                // Add header row
+                if (!xTitle) {
+                    xTitle = xAxis.isDatetimeAxis ? 'DateTime' : 'Category';
+                }
+                dataRows = [
+                    [xTitle].concat(names)
+                ];
+
+                // Transform the rows to CSV
+                each(rowArr, function (row) {
+
+                    var category = row.name;
+                    if (!category) {
+                        if (xAxis.isDatetimeAxis) {
+                            category = Highcharts.dateFormat(dateFormat, row.x);
+                        } else if (xAxis.categories) {
+                            category = pick(xAxis.names[row.x], xAxis.categories[row.x], row.x)
+                        } else {
+                            category = row.x;
+                        }
+                    }
+
+                    // Add the X/date/category
+                    row.unshift(category);
+                    dataRows.push(row);
+                });
+
+                return dataRows;
+            };
+
+            /**
+             * Get a CSV string
+             */
+            Highcharts.Chart.prototype.getCSV = function (useLocalDecimalPoint) {
+                var csv = '',
+                    rows = this.getDataRows(),
+                    options = (this.options.exporting || {}).csv || {},
+                    itemDelimiter = options.itemDelimiter || ',', // use ';' for direct import to Excel
+                    lineDelimiter = options.lineDelimiter || '\n'; // '\n' isn't working with the js csv data extraction
+
+                // Transform the rows to CSV
+                each(rows, function (row, i) {
+                    var val = '',
+                        j = row.length,
+                        n = useLocalDecimalPoint ? (1.1).toLocaleString()[1] : '.';
+                    while (j--) {
+                        val = row[j];
+                        if (typeof val === "string") {
+                            val = '"' + val + '"';
+                        }
+                        if (typeof val === 'number') {
+                            if (n === ',') {
+                                val = val.toString().replace(".", ",");
+                            }
+                        }
+                        row[j] = val;
+                    }
+                    // Add the values
+                    csv += row.join(itemDelimiter);
+
+                    // Add the line delimiter
+                    if (i < rows.length - 1) {
+                        csv += lineDelimiter;
+                    }
+                });
+                return csv;
+            };
+
+            /**
+             * Build a HTML table with the data
+             */
+            Highcharts.Chart.prototype.getTable = function (useLocalDecimalPoint) {
+                var html = '<table>',
+                    rows = this.getDataRows();
+
+                // Transform the rows to HTML
+                each(rows, function (row, i) {
+                    var tag = i ? 'td' : 'th',
+                        val,
+                        j,
+                        n = useLocalDecimalPoint ? (1.1).toLocaleString()[1] : '.';
+
+                    html += '<tr>';
+                    for (j = 0; j < row.length; j = j + 1) {
+                        val = row[j];
+                        // Add the cell
+                        if (typeof val === 'number') {
+                            val = val.toString();
+                            if (n === ',') {
+                                val = val.replace('.', n);
+                            }
+                            html += '<' + tag + ' class="number">' + val + '</' + tag + '>';
+
+                        } else {
+                            html += '<' + tag + '>' + (val === undefined ? '' : val) + '</' + tag + '>';
+                        }
+                    }
+
+                    html += '</tr>';
+                });
+                html += '</table>';
+                return html;
+            };
+
+            function getContent(chart, href, extension, content, MIME) {
+                var a,
+                    blobObject,
+                    name,
+                    options = (chart.options.exporting || {}).csv || {},
+                    url = options.url || 'http://www.highcharts.com/studies/csv-export/download.php';
+
+                if (chart.options.exporting.filename) {
+                    name = chart.options.exporting.filename;
+                } else if (chart.title) {
+                    name = chart.title.textStr.replace(/ /g, '-').toLowerCase();
+                } else {
+                    name = 'chart';
+                }
+
+                // MS specific. Check this first because of bug with Edge (#76)
+                if (window.Blob && window.navigator.msSaveOrOpenBlob) {
+                    // Falls to msSaveOrOpenBlob if download attribute is not supported
+                    blobObject = new Blob([content]);
+                    window.navigator.msSaveOrOpenBlob(blobObject, name + '.' + extension);
+
+                    // Download attribute supported
+                } else if (downloadAttrSupported) {
+                    a = document.createElement('a');
+                    a.href = href;
+                    a.target = '_blank';
+                    a.download = name + '.' + extension;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+
+                } else {
+                    // Fall back to server side handling
+                    Highcharts.post(url, {
+                        data: content,
+                        type: MIME,
+                        extension: extension
+                    });
+                }
+            }
+
+            /**
+             * Call this on click of 'Download CSV' button
+             */
+            Highcharts.Chart.prototype.downloadCSV = function () {
+                var csv = this.getCSV(true);
+                getContent(
+                    this,
+                    'data:text/csv,' + csv.replace(/\n/g, '%0A'),
+                    'csv',
+                    csv,
+                    'text/csv'
+                );
+            };
+
+            /**
+             * Call this on click of 'Download XLS' button
+             */
+            Highcharts.Chart.prototype.downloadXLS = function () {
+                var uri = 'data:application/vnd.ms-excel;base64,',
+                    template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
+                        '<head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>' +
+                        '<x:Name>Ark1</x:Name>' +
+                        '<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->' +
+                        '<style>td{border:none;font-family: Calibri, sans-serif;} .number{mso-number-format:"0.00";}</style>' +
+                        '<meta name=ProgId content=Excel.Sheet>' +
+                        '</head><body>' +
+                        this.getTable(true) +
+                        '</body></html>',
+                    base64 = function (s) {
+                        return window.btoa(unescape(encodeURIComponent(s))); // #50
+                    };
+                getContent(
+                    this,
+                    uri + base64(template),
+                    'xls',
+                    template,
+                    'application/vnd.ms-excel'
+                );
+            };
+
+            /**
+             * View the data in a table below the chart
+             */
+            Highcharts.Chart.prototype.viewData = function () {
+                if (!this.insertedTable) {
+                    var div = document.createElement('div');
+                    div.className = 'highcharts-data-table';
+                    // Insert after the chart container
+                    this.renderTo.parentNode.insertBefore(div, this.renderTo.nextSibling);
+                    div.innerHTML = this.getTable();
+                    this.insertedTable = true;
+                }
+            };
+
+
+            // Add "Download CSV" to the exporting menu. Use download attribute if supported, else
+            // run a simple PHP script that returns a file. The source code for the PHP script can be viewed at
+            // https://raw.github.com/highslide-software/highcharts.com/master/studies/csv-export/csv.php
+            if (Highcharts.getOptions().exporting) {
+                Highcharts.getOptions().exporting.buttons.contextButton.menuItems.push({
+                    textKey: 'downloadCSV',
+                    onclick: function () {
+                        this.downloadCSV();
+                    }
+                }, {
+                    textKey: 'downloadXLS',
+                    onclick: function () {
+                        this.downloadXLS();
+                    }
+                }, {
+                    textKey: 'viewData',
+                    onclick: function () {
+                        this.viewData();
+                    }
+                });
+            }
+
+        }(Highcharts));
+
+    </script>
+</asp:Content>
